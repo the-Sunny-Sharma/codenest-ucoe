@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,12 +15,19 @@ import { CredentialsSignUp } from "@/actions/signup";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (session?.user) {
+      redirect("/home");
+    }
+  }, [session]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
