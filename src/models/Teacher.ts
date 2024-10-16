@@ -1,0 +1,58 @@
+import mongoose from "mongoose";
+
+const TeacherSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    title: {
+      type: String,
+      enum: ["Dr.", "Prof.", "Mr.", "Mrs.", "Ms.", "Sir"],
+      required: true,
+    },
+    qualifications: [
+      {
+        degree: String,
+        institution: String,
+        year: Number,
+      },
+    ],
+    expertise: [String],
+    bio: {
+      type: String,
+      maxlength: [500, "Bio cannot be more than 500 characters"],
+    },
+    courses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
+    ratings: [
+      {
+        student: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Student",
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+        },
+        review: String,
+      },
+    ],
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
+const Teacher =
+  mongoose.models.Teacher || mongoose.model("Teacher", TeacherSchema);
+
+export default Teacher;

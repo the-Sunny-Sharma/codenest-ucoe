@@ -51,7 +51,7 @@ export default function SignupPage() {
         }
       } else {
         toast.success("Sign Up Successful", { id: toastId });
-        router.push(`/`);
+        router.push(`/login`);
       }
     } catch (error) {
       const errorMessage =
@@ -67,7 +67,7 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignUp = () => {
-    signIn("google", { callbackUrl: "/signup/create-username" });
+    signIn("google", { callbackUrl: "/home" });
   };
 
   return (

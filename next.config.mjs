@@ -8,6 +8,11 @@ const nextConfig = {
         hostname: "cdn1.iconfinder.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
+        pathname: "**",
+      },
     ],
   },
 };

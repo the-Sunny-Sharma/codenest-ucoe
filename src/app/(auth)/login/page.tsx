@@ -32,13 +32,14 @@ export default function LoginPage() {
     }
 
     setIsSubmitting(true);
+    const toastId = toast.loading("Logging in...");
     try {
-      const toastId = toast.loading("Logging in...");
       const error = await credentialsLogin(email, password);
       if (!error) {
         setIsSubmitting(false);
         toast.success("Login Successful", { id: toastId });
-        router.refresh();
+        // router.refresh();
+        router.push(`/home`);
       } else {
         setIsSubmitting(false);
         toast.error(String(error), { id: toastId });
@@ -49,6 +50,7 @@ export default function LoginPage() {
           ? error.message
           : "An error occurred. Please try again.";
       setError(errorMessage);
+      toast.error(String(error), { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

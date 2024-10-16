@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthError, CredentialsSignin } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDatabase } from "./lib/connectDB";
@@ -17,25 +17,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please provide email and password");
+          throw new CredentialsSignin({
+            cause: "Please provide email and password",
+          });
         }
+
+        const email = credentials.email as string;
+        const password = credentials.password as string;
 
         await connectToDatabase();
 
-        const user = await User.findOne({ email: credentials.email }).select(
-          "+password"
-        );
+        const user = await User.findOne({ email }).select("+password");
 
         if (!user || !user.password) {
-          throw new Error("Invalid email or password");
+          throw new CredentialsSignin({ cause: "Invalid email or password" });
         }
 
-        const isMatch = await compare(credentials.password, user.password);
+        const isMatch = await compare(password, user.password);
 
         if (!isMatch) {
-          throw new Error("Invalid email or password");
+          throw new CredentialsSignin({ cause: "Invalid email or password" });
         }
 
         return {
@@ -54,24 +57,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         try {
+          const { id, name, email, image } = user;
+
+          if (!email) {
+            throw new AuthError("Email is required");
+          }
+
           await connectToDatabase();
 
-          const existingUser = await User.findOne({ email: user.email });
-          if (!existingUser) {
+          //Only create user if they do not exist
+          const isAlreadyUser = await User.findOne({ email });
+          if (!isAlreadyUser) {
             await User.create({
-              email: user.email,
-              name: user.name,
-              avatarUrl: user.image,
-              googleId: user.id,
+              email,
+              name,
+              avatarUrl: image,
+              googleId: id,
             });
           }
+
           return true;
         } catch (error) {
           console.error("Error during Google sign in:", error);
-          return false;
+          throw new AuthError("Error while creating user");
         }
       }
-      return true;
+      if (account?.provider === "credentials") return true;
+      return false;
     },
     async session({ session, token }) {
       if (session.user) {
