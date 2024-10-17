@@ -16,7 +16,7 @@ import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
   const { data: session } = useSession();
-  if (session?.user) redirect("/");
+  if (session?.user) redirect("/home");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

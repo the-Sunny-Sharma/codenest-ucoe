@@ -1,6 +1,25 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-const TeacherSchema = new mongoose.Schema(
+export interface ITeacher extends Document {
+  user: mongoose.Types.ObjectId;
+  title: string;
+  qualifications: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  expertise: string[];
+  bio: string;
+  courses: mongoose.Types.ObjectId[];
+  ratings: Array<{
+    student: mongoose.Types.ObjectId;
+    rating: number;
+    review: string;
+  }>;
+  averageRating: number;
+}
+
+const TeacherSchema = new mongoose.Schema<ITeacher>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -51,8 +70,7 @@ const TeacherSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 const Teacher =
-  mongoose.models.Teacher || mongoose.model("Teacher", TeacherSchema);
+  mongoose.models.Teacher || mongoose.model<ITeacher>("Teacher", TeacherSchema);
 
 export default Teacher;

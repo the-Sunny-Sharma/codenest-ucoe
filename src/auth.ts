@@ -1,9 +1,20 @@
-import NextAuth, { AuthError, CredentialsSignin } from "next-auth";
+import NextAuth, {
+  AuthError,
+  CredentialsSignin,
+  DefaultSession,
+} from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDatabase } from "./lib/connectDB";
 import { User } from "./models/userDetails";
 import { compare } from "bcryptjs";
+
+// Extend the built-in session types
+interface ExtendedSession extends DefaultSession {
+  user?: {
+    id: string;
+  } & DefaultSession["user"];
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -85,9 +96,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === "credentials") return true;
       return false;
     },
-    async session({ session, token }) {
+    async session({ session, token }): Promise<ExtendedSession> {
       if (session.user) {
-        session.user.id = token.sub;
+        session.user.id = token.sub!;
       }
       return session;
     },

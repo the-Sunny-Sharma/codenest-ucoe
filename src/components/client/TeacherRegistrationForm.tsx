@@ -26,11 +26,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const qualificationSchema = z.object({
   degree: z.string().min(2, "Degree must be at least 2 characters"),
   institution: z.string().min(2, "Institution must be at least 2 characters"),
-  year: z.number().min(1900).max(new Date().getFullYear()),
+  year: z.coerce.number().min(1900).max(new Date().getFullYear()),
 });
 
 const formSchema = z.object({
@@ -47,6 +48,7 @@ const formSchema = z.object({
 export function TeacherRegistrationForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,20 +83,34 @@ export function TeacherRegistrationForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+    setError(null);
     try {
       const response = await axios.post("/api/teacher/register", values);
+      //Debug
+      console.log(response);
       toast({
         title: "Registration Successful",
         description: "You have successfully registered as a teacher.",
       });
       router.push("/dashboard");
     } catch (error) {
-      toast({
-        title: "Registration Failed",
-        description:
-          "There was an error registering you as a teacher. Please try again.",
-        variant: "destructive",
-      });
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.message || "An unknown error occurred";
+        setError(errorMessage);
+        toast({
+          title: "Registration Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+        toast({
+          title: "Registration Failed",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -103,6 +119,13 @@ export function TeacherRegistrationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <FormField
           control={form.control}
           name="title"
@@ -163,7 +186,17 @@ export function TeacherRegistrationForm() {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input {...field} type="number" placeholder="Year" />
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Year"
+                        onChange={(e) => {
+                          const value = e.target.value
+                            ? parseInt(e.target.value, 10)
+                            : "";
+                          field.onChange(value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
