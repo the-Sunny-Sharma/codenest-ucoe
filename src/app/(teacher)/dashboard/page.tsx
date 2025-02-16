@@ -1,12 +1,23 @@
-"use client";
+// "use client";
 
 import React from "react";
-import TeacherLayout from "@/components/client/layouts/TeacherLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, Clock, Star } from "lucide-react";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getUserRole } from "@/lib/auth";
+import TeacherLayout from "@/components/client/layouts/TeacherLayout";
 
-const TeacherDashboard = () => {
+const TeacherDashboard = async () => {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const userRole = session?.user?.email
+    ? await getUserRole(session.user.email)
+    : "student";
+  if (userRole != "teacher") redirect("/teach");
+
   // This data would typically come from an API call
   const dashboardData = {
     totalCourses: 5,

@@ -7,3 +7,18 @@ export interface User {
   exp: number;
   jti: string;
 }
+
+// File: types/index.ts
+export interface CourseFormData {
+  name: string;
+  description: string;
+  thumbnail: FileList;
+  promoVideo: FileList;
+  price: number;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  tags: string[];
+  prerequisites: string[];
+  language: string;
+  certificate: boolean;
+  category: string;
+}

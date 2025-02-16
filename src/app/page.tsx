@@ -15,7 +15,7 @@ import {
   Code,
   Database,
   Layers,
-  Link as LinkIcon,
+  LinkIcon,
   LogOut,
   Moon,
   Server,
@@ -26,7 +26,8 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 interface CurrentUser {
   name: string;
@@ -84,6 +85,8 @@ export default function Home() {
     { name: "Zod", description: "TypeScript-first schema validation" },
   ];
 
+  if (session) console.log(session);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="p-4 flex justify-between items-center">
@@ -111,7 +114,9 @@ export default function Home() {
                       alt={currentUser.name}
                     />
                     <AvatarFallback>
-                      {currentUser.name.charAt(0)}
+                      {currentUser.name
+                        ? currentUser.name.charAt(0).toUpperCase()
+                        : "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>

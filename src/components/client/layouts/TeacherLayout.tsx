@@ -81,7 +81,7 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
 
   const sidebarItems = [
     { icon: <Home size={24} />, label: "Dashboard", href: "/dashboard" },
-    { icon: <BookOpen size={24} />, label: "Courses", href: "/courses" },
+    { icon: <BookOpen size={24} />, label: "Courses", href: "/my-courses" },
     { icon: <Users size={24} />, label: "Students", href: "/students" },
     { icon: <Calendar size={24} />, label: "Schedule", href: "/schedule" },
     { icon: <Settings size={24} />, label: "Settings", href: "/settings" },

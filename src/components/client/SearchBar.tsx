@@ -1,137 +1,116 @@
-"use client";
-
-import React, { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { Search } from "lucide-react"; // Icon
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
 
-// Mock data for suggestions and courses
-const suggestions = ["java", "javascript", "python", "react", "node.js"];
-const mockCourses = [
-  { id: 1, title: "Java Fundamentals", instructor: "John Doe" },
-  { id: 2, title: "Advanced JavaScript", instructor: "Jane Smith" },
-  { id: 3, title: "Python for Beginners", instructor: "Bob Johnson" },
-];
+export default function SearchBar() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{
+    suggestions: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    courses: any[];
+  }>({
+    suggestions: [],
+    courses: [],
+  });
 
-export function SearchBar() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<typeof mockCourses>(
-    []
-  );
   const router = useRouter();
-  const searchRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
+  const fetchResults = async (q: string) => {
+    if (!q.trim()) return setResults({ suggestions: [], courses: [] });
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = suggestions.filter((suggestion) =>
-        suggestion.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredSuggestions(filtered);
-
-      const filteredCourses = mockCourses.filter((course) =>
-        course.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredCourses(filteredCourses);
-
-      setShowSuggestions(true);
-    } else {
-      setShowSuggestions(false);
+    try {
+      const { data } = await axios.get(`/api/search?q=${q}`);
+      console.log("Data", data);
+      setResults(data);
+    } catch (error) {
+      console.error("Search error:", error);
     }
-  }, [searchQuery]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-    setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion);
-    router.push(`/search?q=${encodeURIComponent(suggestion)}`);
-    setShowSuggestions(false);
-  };
-
-  const handleCourseClick = (courseId: number) => {
-    router.push(`/course/${courseId}`);
-    setShowSuggestions(false);
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    router.push(`/courses?search=${encodeURIComponent(query)}`); //navigating to courses page
   };
 
   return (
-    <div ref={searchRef} className="relative w-full">
-      <form onSubmit={handleSearch}>
-        <div className="relative">
-          <Input
-            type="search"
-            placeholder="Search for anything"
-            className="w-full pr-10 rounded-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-          />
-          <Button
-            type="submit"
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0 h-full"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-        </div>
-      </form>
-      {showSuggestions && (searchQuery || filteredCourses.length > 0) && (
-        <div className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1">
-          {filteredSuggestions.length > 0 && (
-            <div className="p-2">
-              <h3 className="text-sm font-semibold mb-1">Suggestions</h3>
-              {filteredSuggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  className="cursor-pointer hover:bg-muted p-1 rounded"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
+    <div className="relative w-full max-w-md">
+      <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            fetchResults(e.target.value);
+          }}
+          className="w-full outline-none"
+        />
+        {query && <button onClick={() => setQuery("")}>✖</button>}
+        <Search className="ml-2 text-gray-500" onClick={handleSearch} />
+      </div>
+
+      {query &&
+        (results.suggestions.length > 0 || results.courses.length > 0) && (
+          <div className="absolute w-full bg-white shadow-lg mt-2 rounded-lg p-2">
+            {/* Suggestions */}
+            {results.suggestions.length > 0 && (
+              <div className="mb-2">
+                <p className="text-gray-500 font-semibold">Suggestions</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {results.suggestions.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-gray-200 rounded text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-          {filteredCourses.length > 0 && (
-            <div className="p-2 border-t">
-              <h3 className="text-sm font-semibold mb-1">Courses</h3>
-              {filteredCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="cursor-pointer hover:bg-muted p-1 rounded"
-                  onClick={() => handleCourseClick(course.id)}
-                >
-                  <div>{course.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {course.instructor}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+
+            {/* Courses */}
+            {results.courses.length > 0 && (
+              <div>
+                <p className="text-gray-500 font-semibold">Courses</p>
+                {/* <ul>
+                {results.courses.map((course) => (
+                  <li key={course.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded">
+                    <img src={course.thumbnail} alt={course.title} className="w-12 h-12 rounded" />
+                    <div>
+                      <p className="font-semibold">{course.title}</p>
+                      <p className="text-sm text-gray-500">{course.tags.join(", ")}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul> */}
+                <ul>
+                  {results.courses.map((course) => (
+                    <li
+                      key={course.id}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded"
+                    >
+                      <img
+                        src={course.thumbnail}
+                        alt={course.title}
+                        className="w-12 h-12 rounded"
+                      />
+                      <div>
+                        <p className="font-semibold">{course.name}</p>{" "}
+                        {/* Show Course Name */}
+                        <p className="text-sm text-gray-500">
+                          {course.instructor.name}
+                        </p>{" "}
+                        {/* Keep tags as secondary info */}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 }

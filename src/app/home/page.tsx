@@ -1,22 +1,16 @@
-"use client";
-
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-} from "lucide-react";
-import { Navbar } from "@/components/client/Navbar";
 import { AlertBanner } from "@/components/client/AlertBanner";
 import { CourseListing } from "@/components/client/CourseListing";
 import { Footer } from "@/components/client/Footer";
+import { Navbar } from "@/components/client/Navbar";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { auth } from "@/auth";
+import { User } from "@/models/userDetails";
+import { connectToDatabase } from "@/lib/connectDB";
+import { redirect } from "next/navigation";
 
 const categories = [
   "Web Development",
@@ -70,14 +64,19 @@ const projectTasks = [
   { name: "Final Adjustments and Launch", status: "not-started" },
 ];
 
-export default function HomePage() {
-  const [expandedCategory, setExpandedCategory] = React.useState<string | null>(
-    null
-  );
+async function getUserRole(email: string) {
+  await connectToDatabase();
+  const user = await User.findOne({ email });
+  return user?.role || "student";
+}
 
-  const toggleCategory = (category: string) => {
-    setExpandedCategory(expandedCategory === category ? null : category);
-  };
+export default async function HomePage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const userRole = session?.user?.email
+    ? await getUserRole(session.user.email)
+    : "student";
 
   const completedTasks = projectTasks.filter(
     (task) => task.status === "completed"
@@ -172,57 +171,48 @@ export default function HomePage() {
                   <Button
                     variant="ghost"
                     className="w-full justify-between text-left p-4"
-                    onClick={() => toggleCategory(category)}
                   >
                     {category}
-                    {expandedCategory === category ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
+                    <ChevronDown className="h-4 w-4" />
                   </Button>
-                  <AnimatePresence>
-                    {expandedCategory === category && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="p-4 bg-background"
-                      >
-                        <p>
-                          Explore {category} courses and start your learning
-                          journey today!
-                        </p>
-                        <Button className="mt-2" asChild>
-                          <Link
-                            href={`/courses?category=${encodeURIComponent(
-                              category
-                            )}`}
-                          >
-                            View Courses
-                          </Link>
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-12">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold mb-4">Become an Instructor</h2>
-            <p className="mb-6">
-              Share your coding expertise and inspire the next generation of
-              developers.
-            </p>
-            <Button size="lg" asChild>
-              <Link href="/teach">Start Teaching</Link>
-            </Button>
-          </div>
-        </section>
+        {userRole === "teacher" ? (
+          <section className="py-12 bg-primary text-primary-foreground">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl font-bold mb-4">Welcome, Instructor!</h2>
+              <p className="mb-6">
+                Ready to inspire the next generation of developers? Manage your
+                courses and connect with students.
+              </p>
+              <div className="space-x-4">
+                <Button size="lg" variant="secondary" asChild>
+                  <Link href="/dashboard">Instructor Dashboard</Link>
+                </Button>
+                <Button size="lg" variant="secondary" asChild>
+                  <Link href="/create-course">Create New Course</Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="py-12">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-2xl font-bold mb-4">Become an Instructor</h2>
+              <p className="mb-6">
+                Share your coding expertise and inspire the next generation of
+                developers.
+              </p>
+              <Button size="lg" asChild>
+                <Link href="/teach">Start Teaching</Link>
+              </Button>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

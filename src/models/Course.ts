@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Model, Schema, type Document } from "mongoose";
 
 export interface IChapter extends Document {
   title: string;
   description: string;
   thumbnail: string;
-  videoUrl?: string;
+  videoUrls: string[];
   liveSessionDate?: Date;
   duration: number;
   order: number;
@@ -32,13 +32,16 @@ export interface ICourse extends Document {
   numberOfReviews: number;
   language: string;
   certificate: boolean;
+  status: "draft" | "published" | "archived";
+  category: string;
+  streamUrl?: string;
 }
 
 const ChapterSchema: Schema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   thumbnail: { type: String, required: true },
-  videoUrl: { type: String },
+  videoUrls: [{ type: String }],
   liveSessionDate: { type: Date },
   duration: { type: Number, required: true },
   order: { type: Number, required: true },
@@ -50,7 +53,7 @@ const CourseSchema: Schema = new Schema({
   description: { type: String, required: true },
   thumbnail: { type: String, required: true },
   promoVideo: { type: String, required: true },
-  instructor: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  instructor: { type: Schema.Types.ObjectId, ref: "Teacher", required: true },
   price: { type: Number, required: true },
   enrolledStudents: [{ type: Schema.Types.ObjectId, ref: "User" }],
   classCode: { type: String, required: true, unique: true },
@@ -70,7 +73,17 @@ const CourseSchema: Schema = new Schema({
   numberOfReviews: { type: Number, default: 0 },
   language: { type: String, required: true },
   certificate: { type: Boolean, default: false },
+  status: {
+    type: String,
+    enum: ["draft", "published", "archived"],
+    default: "draft",
+  },
+  category: { type: String, required: true },
+  streamUrl: { type: String },
 });
 
-export default mongoose.models.Course ||
-  mongoose.model<ICourse>("Course", CourseSchema);
+// Ensure the model is only created once to avoid OverwriteModelError
+const Course: Model<ICourse> =
+  mongoose.models.Course || mongoose.model<ICourse>("Course", CourseSchema);
+
+export default Course;

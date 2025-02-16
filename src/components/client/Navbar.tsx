@@ -1,24 +1,46 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AnimatePresence, motion } from "framer-motion";
-import { GamepadIcon, Menu, Moon, Sun, User, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { GamepadIcon, LogOut, Menu, Moon, Sun, User, X } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useState } from "react";
-import { SearchBar } from "./SearchBar";
+import { useEffect, useState } from "react";
+import SearchBar from "./SearchBar";
+
+interface CurrentUser {
+  name: string;
+  profilePicture: string;
+}
 
 export function Navbar() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>({
+    name: "",
+    profilePicture: "",
+  });
+
+  useEffect(() => {
+    if (session?.user) {
+      setCurrentUser({
+        name: session.user.name ?? "",
+        profilePicture:
+          session.user.image ??
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png",
+      });
+    }
+  }, [session]);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
@@ -50,26 +72,7 @@ export function Navbar() {
           >
             <GamepadIcon className="h-5 w-5" />
           </Link>
-          {session ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Link href="/profile">Manage Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/dashboard">My Learning</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/logout">Log Out</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
+          {!session ? (
             <>
               <Link
                 href="/login"
@@ -81,6 +84,39 @@ export function Navbar() {
                 <Link href="/signup">Sign Up</Link>
               </Button>
             </>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={currentUser.profilePicture}
+                      alt={currentUser.name}
+                    />
+                    <AvatarFallback>
+                      {currentUser.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="flex items-center"
+                  onSelect={() => signOut()}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button
             variant="ghost"

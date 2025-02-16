@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
-import { redirect, useRouter } from "next/navigation";
+import { CredentialsSignUp } from "@/actions/signup";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FaGoogle } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
+import { redirect, useRouter } from "next/navigation";
+import { useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
-import { CredentialsSignUp } from "@/actions/signup";
 
 export default function SignupPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  if (session?.user) redirect("/home");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,11 +25,12 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (session?.user) {
-      redirect("/home");
-    }
-  }, [session]);
+  //Takes a bit time to redirect to the home page, exposing the signup page for a sec
+  // useEffect(() => {
+  //   if (session?.user) {
+  //     redirect("/home");
+  //   }
+  // }, [session]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
