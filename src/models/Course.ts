@@ -39,12 +39,12 @@ export interface ICourse extends Document {
 
 const ChapterSchema: Schema = new Schema({
   title: { type: String, required: true },
-  description: { type: String, required: true },
-  thumbnail: { type: String, required: true },
+  description: { type: String },
+  thumbnail: { type: String },
   videoUrls: [{ type: String }],
   liveSessionDate: { type: Date },
-  duration: { type: Number, required: true },
-  order: { type: Number, required: true },
+  duration: { type: Number },
+  order: { type: Number },
 });
 
 const CourseSchema: Schema = new Schema({

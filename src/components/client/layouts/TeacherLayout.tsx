@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -94,27 +96,66 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside
-        className={`bg-card text-card-foreground transition-all duration-300 ease-in-out ${
+      <motion.aside
+        className={`bg-card text-card-foreground ${
           isSidebarOpen ? "w-64" : "w-20"
         } flex flex-col`}
         onMouseEnter={() => setIsSidebarOpen(true)}
         onMouseLeave={() => setIsSidebarOpen(false)}
+        animate={{ width: isSidebarOpen ? "16rem" : "5rem" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        <div className="p-4">
-          <Menu size={24} />
+        <div className="p-4 flex items-center justify-center h-16">
+          <AnimatePresence>
+            {isSidebarOpen ? (
+              <motion.h1
+                key="logo-text"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="text-xl font-bold"
+              >
+                CodeNest
+              </motion.h1>
+            ) : (
+              <motion.div
+                key="logo-icon"
+                initial={{ opacity: 0, rotate: -180 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: -180 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Menu size={24} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <nav className="flex-1">
           <ul>
             {sidebarItems.map((item, index) => (
               <li key={index}>
                 <Link href={item.href}>
-                  <span className="flex items-center p-4 hover:bg-accent">
+                  <motion.span
+                    className="flex items-center p-4 hover:bg-accent"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     {item.icon}
-                    {isSidebarOpen && (
-                      <span className="ml-4">{item.label}</span>
-                    )}
-                  </span>
+                    <AnimatePresence>
+                      {isSidebarOpen && (
+                        <motion.span
+                          className="ml-4"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.span>
                 </Link>
               </li>
             ))}
@@ -126,9 +167,21 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
           onClick={handleLogout}
         >
           <LogOut size={24} />
-          {isSidebarOpen && <span className="ml-4">Logout</span>}
+          <AnimatePresence>
+            {isSidebarOpen && (
+              <motion.span
+                className="ml-4"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                Logout
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Button>
-      </aside>
+      </motion.aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
