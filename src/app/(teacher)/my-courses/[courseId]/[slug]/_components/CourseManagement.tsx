@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -32,6 +31,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   BarChart,
   Clock,
   DollarSign,
@@ -39,19 +46,20 @@ import {
   Video,
   Pencil,
   Trash,
+  Share2,
 } from "lucide-react";
-import ChapterList from "./ChapterList";
-import VideoUploader from "./VideoUploader";
-import LiveStreamSetup from "./LiveStreamSetup";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
+import SectionList from "./SectionList";
+import type { ICourse } from "@/app/types";
 
 interface CourseManagementProps {
-  initialCourse: any; // Replace 'any' with your Course type
+  initialCourse: ICourse;
 }
 
 export default function CourseManagement({
   initialCourse,
 }: CourseManagementProps) {
-  const [course, setCourse] = useState(initialCourse);
+  const [course, setCourse] = useState<ICourse>(initialCourse);
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
 
@@ -72,10 +80,19 @@ export default function CourseManagement({
 
   const handleSave = async () => {
     try {
+      // Convert _id to valid ObjectId format (ensure it's 24-char hex)
+      const formattedCourse = {
+        ...course,
+        sections: course.sections.map((section) => ({
+          ...section,
+          _id: section._id.length === 24 ? section._id : undefined,
+        })),
+      };
+
       const response = await fetch(`/api/courses/${course._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(course),
+        body: JSON.stringify(formattedCourse),
       });
 
       if (!response.ok) {
@@ -109,11 +126,80 @@ export default function CourseManagement({
     }
   };
 
+  const handleSectionReorder = async (result: any) => {
+    if (!result.destination) return;
+
+    const sections = Array.from(course.sections);
+    const [reorderedSection] = sections.splice(result.source.index, 1);
+    sections.splice(result.destination.index, 0, reorderedSection);
+
+    // Update order numbers
+    const updatedSections = sections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+    }));
+
+    setCourse((prev) => ({ ...prev, sections: updatedSections }));
+
+    try {
+      await fetch(`/api/courses/${course._id}/sections/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sections: updatedSections }),
+      });
+    } catch (error) {
+      console.error("Error reordering sections:", error);
+      toast.error("Failed to save section order");
+    }
+  };
+
+  const getShareableLink = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/courses/${course.slug}/enroll?code=${course.classCode}`;
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">{course.name}</h1>
         <div className="space-x-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Share2 className="mr-2 h-4 w-4" /> Share Class Code
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share Course</DialogTitle>
+                <DialogDescription>
+                  Share this link with students to give them instant access to
+                  the course.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={getShareableLink()}
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(getShareableLink());
+                    toast.success("Link copied to clipboard");
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm text-muted-foreground">
+                  Class Code: {course.classCode}
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {!isEditing && (
             <Button onClick={() => setIsEditing(true)}>
               <Pencil className="mr-2 h-4 w-4" /> Edit Course
@@ -184,29 +270,16 @@ export default function CourseManagement({
                     disabled={!isEditing}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="price">Price (₹)</Label>
-                    <Input
-                      id="price"
-                      name="price"
-                      type="number"
-                      value={course.price}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="totalHours">Total Hours</Label>
-                    <Input
-                      id="totalHours"
-                      name="totalHours"
-                      type="number"
-                      value={course.totalHours}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="price">Price (₹)</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    value={course.price}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -275,7 +348,7 @@ export default function CourseManagement({
                             .split(",")
                             .map((tag) => tag.trim()),
                         },
-                      } as React.ChangeEvent<HTMLInputElement>)
+                      } as unknown as React.ChangeEvent<HTMLInputElement>)
                     }
                     disabled={!isEditing}
                   />
@@ -301,26 +374,26 @@ export default function CourseManagement({
               <CardTitle>Course Content</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="chapters">
-                <TabsList>
-                  <TabsTrigger value="chapters">Chapters</TabsTrigger>
-                  <TabsTrigger value="videos">Videos</TabsTrigger>
-                  <TabsTrigger value="livestream">Live Stream</TabsTrigger>
-                </TabsList>
-                <TabsContent value="chapters">
-                  <ChapterList
-                    courseId={course._id}
-                    chapters={course.chapters}
-                    isEditing={isEditing}
-                  />
-                </TabsContent>
-                <TabsContent value="videos">
-                  <VideoUploader courseId={course._id} />
-                </TabsContent>
-                <TabsContent value="livestream">
-                  <LiveStreamSetup courseId={course._id} />
-                </TabsContent>
-              </Tabs>
+              <DragDropContext onDragEnd={handleSectionReorder}>
+                <Droppable droppableId="sections">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      <SectionList
+                        courseId={course._id}
+                        sections={course.sections}
+                        isEditing={isEditing}
+                        onUpdate={(updatedSections) => {
+                          setCourse((prev) => ({
+                            ...prev,
+                            sections: updatedSections,
+                          }));
+                        }}
+                      />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </CardContent>
           </Card>
         </div>
@@ -341,10 +414,10 @@ export default function CourseManagement({
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <BarChart className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>Completion Rate</span>
+                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Total Hours</span>
                   </div>
-                  <Badge>{course.completionRate || 0}%</Badge>
+                  <Badge>{course.totalHours}h</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -355,13 +428,6 @@ export default function CourseManagement({
                     ₹
                     {(course.enrolledStudents.length * course.price).toFixed(2)}
                   </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>Total Hours</span>
-                  </div>
-                  <Badge>{course.totalHours}h</Badge>
                 </div>
               </div>
             </CardContent>
@@ -375,7 +441,7 @@ export default function CourseManagement({
               <div className="space-y-2">
                 <Button className="w-full" asChild>
                   <a
-                    href={`/courses/${course._id}`}
+                    href={`/courses/${course.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

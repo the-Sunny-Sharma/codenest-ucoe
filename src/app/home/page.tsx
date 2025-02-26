@@ -194,7 +194,7 @@ export default async function HomePage() {
                   <Link href="/dashboard">Instructor Dashboard</Link>
                 </Button>
                 <Button size="lg" variant="secondary" asChild>
-                  <Link href="/create-course">Create New Course</Link>
+                  <Link href="/my-courses/new">Create New Course</Link>
                 </Button>
               </div>
             </div>

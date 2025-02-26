@@ -260,7 +260,9 @@ export default function TeacherCourses() {
               </CardContent>
               <CardFooter className="flex gap-2">
                 <Button variant="outline" className="flex-1" asChild>
-                  <Link href={`/teacher/courses/${course._id}`}>Manage</Link>
+                  <Link href={`/my-courses/${course._id}/${course.slug}`}>
+                    Manage
+                  </Link>
                 </Button>
                 <Button variant="default" className="flex-1" asChild>
                   <Link href={`/courses/${course.slug}`}>Preview</Link>
@@ -278,7 +280,7 @@ export default function TeacherCourses() {
                 ? "Try adjusting your search criteria"
                 : "Start by creating your first course"}
             </p>
-            <Button onClick={() => router.push("/teacher/courses/new")}>
+            <Button onClick={() => router.push("/my-courses/new")}>
               <Plus className="mr-2 h-4 w-4" /> Create New Course
             </Button>
           </div>

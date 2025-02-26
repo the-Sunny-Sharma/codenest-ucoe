@@ -5,7 +5,7 @@ import Course from "@/models/Course";
 import Teacher from "@/models/Teacher";
 import { generateSlug } from "@/lib/utils";
 import { nanoid } from "nanoid";
-import mongoose from "mongoose";
+// import mongoose from "mongoose";
 import { User } from "@/models/userDetails";
 
 export async function POST(req: NextRequest) {

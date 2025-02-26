@@ -27,6 +27,8 @@ export default function TeachPage() {
             if (error.response.status === 404) {
               toast.error("User not found. Please sign up.");
               router.push("/signup");
+            } else if (error.response.status === 403) {
+              console.log("User is not registered as a Teacher");
             } else {
               toast.error("An error occurred. Please try again.");
             }

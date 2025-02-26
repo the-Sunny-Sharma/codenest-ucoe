@@ -16,7 +16,7 @@ const TeacherDashboard = async () => {
   const userRole = session?.user?.email
     ? await getUserRole(session.user.email)
     : "student";
-  if (userRole != "teacher") redirect("/teach");
+  if (userRole != "teacher") redirect("/teacher/register");
 
   // This data would typically come from an API call
   const dashboardData = {

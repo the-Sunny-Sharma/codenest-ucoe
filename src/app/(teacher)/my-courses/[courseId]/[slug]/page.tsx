@@ -23,7 +23,7 @@ interface PageProps {
 // }
 
 async function getCourse(courseId: string) {
-  console.log("Fetching course with ID:", courseId);
+  // console.log("Fetching course with ID:", courseId);
   await connectToDatabase();
   const course = await Course.findById(courseId).lean();
 
@@ -32,8 +32,31 @@ async function getCourse(courseId: string) {
     notFound();
   }
 
-  console.log("Course found:", course);
-  return course;
+  // console.log("Course found:", course);
+  // return course;
+
+  // Convert ObjectId fields to string manually
+  // return {
+  //   ...course,
+  //   _id: course._id.toString(),
+  //   instructor: course.instructor.toString(),
+  //   createdAt: course.createdAt.toISOString(),
+  //   updatedAt: course.updatedAt.toISOString(),
+  // };
+  return {
+    ...course,
+    _id: course._id.toString(),
+    instructor: course.instructor.toString(),
+    createdAt: course.createdAt.toISOString(),
+    updatedAt: course.updatedAt.toISOString(),
+    sections: course.sections.map((section) => ({
+      ...section,
+      chapters: section.chapters.map((chapter) => ({
+        ...chapter,
+        _id: chapter._id.toString(),
+      })),
+    })),
+  };
 }
 
 // async function getCourse(courseId: string) {

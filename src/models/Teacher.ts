@@ -28,7 +28,7 @@ const TeacherSchema = new mongoose.Schema<ITeacher>(
     },
     title: {
       type: String,
-      enum: ["Dr.", "Prof.", "Mr.", "Mrs.", "Ms.", "Sir"],
+      // enum: ["Dr.", "Prof.", "Mr.", "Mrs.", "Ms.", "Sir"], //this won't allow to enter custom titles
       required: true,
     },
     qualifications: [

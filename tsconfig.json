@@ -26,7 +26,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/scripts/seed-courses.ts"
+    "src/scripts/seed-courses.ts",
+    "src/app/api/mux/playback-id"
   ],
   "exclude": ["node_modules"]
 }
