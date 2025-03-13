@@ -40,33 +40,38 @@ async function getCourse(courseId: string) {
   //   ...course,
   //   _id: course._id.toString(),
   //   instructor: course.instructor.toString(),
+  //   enrolledStudents: course.enrolledStudents.map((student) =>
+  //     student.toString()
+  //   ), // ✅ Convert ObjectId to string
   //   createdAt: course.createdAt.toISOString(),
   //   updatedAt: course.updatedAt.toISOString(),
-  // };
+  //   sections: course.sections.map((section) => ({
+  //     ...section,
+  //     chapters: section.chapters.map((chapter) => ({
+  //       ...chapter,
+  //       _id: chapter._id.toString(),
+  //     })),
+  //   })),
+  // };`
   return {
     ...course,
     _id: course._id.toString(),
     instructor: course.instructor.toString(),
-    createdAt: course.createdAt.toISOString(),
-    updatedAt: course.updatedAt.toISOString(),
+    enrolledStudents: course.enrolledStudents.map((s) => s.toString()),
     sections: course.sections.map((section) => ({
       ...section,
+      _id: section._id.toString(),
       chapters: section.chapters.map((chapter) => ({
         ...chapter,
         _id: chapter._id.toString(),
+        resources: chapter.resources.map((res) => ({
+          ...res,
+          _id: res._id?.toString(),
+        })),
       })),
     })),
   };
 }
-
-// async function getCourse(courseId: string) {
-//   await connectToDatabase();
-//   const course = await Course.findById(courseId).lean();
-//   if (!course) {
-//     notFound();
-//   }
-//   return course;
-// }
 
 export default async function CourseManagementPage({ params }: PageProps) {
   const session = await auth();

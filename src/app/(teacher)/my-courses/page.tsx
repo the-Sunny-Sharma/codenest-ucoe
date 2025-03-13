@@ -161,7 +161,7 @@ export default function TeacherCourses() {
               Manage and track your course performance
             </p>
           </div>
-          <Button onClick={() => router.push("/teacher/courses/new")}>
+          <Button onClick={() => router.push("/my-courses/new")}>
             <Plus className="mr-2 h-4 w-4" /> Create New Course
           </Button>
         </div>

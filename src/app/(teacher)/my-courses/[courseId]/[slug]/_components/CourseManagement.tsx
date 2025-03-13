@@ -85,9 +85,22 @@ export default function CourseManagement({
         ...course,
         sections: course.sections.map((section) => ({
           ...section,
-          _id: section._id.length === 24 ? section._id : undefined,
+          _id:
+            typeof section._id === "string" && section._id.length === 24
+              ? section._id
+              : undefined,
+          chapters: section.chapters.map((chapter) => ({
+            ...chapter,
+
+            _id:
+              typeof chapter._id === "string" && chapter._id.length === 24
+                ? chapter._id
+                : undefined,
+          })),
         })),
       };
+
+      console.log("Saving course:", formattedCourse); // Debug log
 
       const response = await fetch(`/api/courses/${course._id}`, {
         method: "PUT",
@@ -126,6 +139,7 @@ export default function CourseManagement({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSectionReorder = async (result: any) => {
     if (!result.destination) return;
 
@@ -379,7 +393,11 @@ export default function CourseManagement({
                   {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                       <SectionList
-                        courseId={course._id}
+                        courseId={
+                          typeof course._id === "string"
+                            ? course._id
+                            : course._id.toString()
+                        }
                         sections={course.sections}
                         isEditing={isEditing}
                         onUpdate={(updatedSections) => {
@@ -389,6 +407,7 @@ export default function CourseManagement({
                           }));
                         }}
                       />
+
                       {provided.placeholder}
                     </div>
                   )}

@@ -51,6 +51,7 @@ export default function Home() {
           "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png",
       });
     }
+    console.log("User Session: ", session);
   }, [session]);
 
   const techStack = [
@@ -85,7 +86,7 @@ export default function Home() {
     { name: "Zod", description: "TypeScript-first schema validation" },
   ];
 
-  if (session) console.log(session);
+  // if (session) console.log(session);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

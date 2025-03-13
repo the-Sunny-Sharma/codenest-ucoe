@@ -169,10 +169,11 @@ export default function CreateCoursePage() {
 
       const response = await axios.post("/api/create-new", courseData);
 
-      console.log("RESPONSE: ", response);
+      // console.log("RESPONSE: ", response);
       if (response.data.success) {
         toast.success("Course created successfully!");
-        router.push(`/courses/${response.data.slug}`);
+        // console.log(response);
+        router.push(`/courses/${response.data.courseId}/${response.data.slug}`);
       } else {
         throw new Error(response.data.error || "Failed to create course");
       }

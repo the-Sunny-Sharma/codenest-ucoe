@@ -20,6 +20,8 @@ export async function PUT(
     const { courseId } = params;
     const updatedCourseData = await request.json();
 
+    console.log("Course update: ", updatedCourseData);
+
     // Get the course details
     const course = await Course.findById(courseId);
     if (!course) {

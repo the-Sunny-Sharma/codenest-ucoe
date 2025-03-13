@@ -111,7 +111,8 @@ export default async function HomePage() {
                   alt="Student coding"
                   width={600}
                   height={400}
-                  className="rounded-lg"
+                  className="rounded-lg w-full h-auto"
+                  priority
                 />
               </div>
             </div>

@@ -270,12 +270,13 @@ const LoadingSkeleton = () => (
 const getPageTitle = (pathname: string) => {
   const titles: { [key: string]: string } = {
     "/dashboard": "Dashboard",
-    "/courses": "Courses",
+    "/my-courses": "Courses",
+    "/my-courses/new": "New Course",
     "/students": "Students",
     "/schedule": "Schedule",
     "/settings": "Settings",
   };
-  return titles[pathname] || "CodeNest Teacher Dashboard";
+  return titles[pathname] || "CodeNest";
 };
 
 export default TeacherLayout;

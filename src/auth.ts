@@ -38,7 +38,7 @@ export const config = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new CredentialsSignin({
-            message: "Please provide email and password",
+            cause: "Please provide email and password",
           });
         }
 
@@ -50,15 +50,16 @@ export const config = {
         const user = await User.findOne({ email }).select("+password");
 
         if (!user || !user.password) {
-          throw new CredentialsSignin({ message: "Invalid email or password" });
+          throw new CredentialsSignin({ cause: "Invalid email or password" });
         }
 
         const isMatch = await compare(password, user.password);
 
         if (!isMatch) {
-          throw new CredentialsSignin({ message: "Invalid email or password" });
+          throw new CredentialsSignin({ cause: "Invalid email or password" });
         }
 
+        console.log("USER ID", user._id);
         return {
           id: user._id.toString(),
           name: user.name,

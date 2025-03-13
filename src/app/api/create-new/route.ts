@@ -66,7 +66,11 @@ export async function POST(req: NextRequest) {
     teacher.courses.push(newCourse._id);
     await teacher.save();
 
-    return NextResponse.json({ success: true, slug: newCourse.slug });
+    return NextResponse.json({
+      success: true,
+      courseId: newCourse._id,
+      slug: newCourse.slug,
+    });
   } catch (error) {
     console.error("Error creating course:", error);
     return NextResponse.json(

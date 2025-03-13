@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,17 +15,30 @@ import { googleSignin } from "@/actions/googleActions";
 import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
-  const { data: session } = useSession();
-  if (session?.user) redirect("/home");
+  const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Redirect if the user is already logged in
+  useEffect(() => {
+    if (session?.user) {
+      router.replace("/home");
+    }
+  }, [session, router]);
+
+  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * Handles form submission for credentials-based login.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate input
     if (!email || !password) {
       toast.error("Please provide both email and password");
       return;
@@ -33,32 +46,36 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     const toastId = toast.loading("Logging in...");
+
     try {
-      const error = await credentialsLogin(email, password);
-      if (!error) {
-        setIsSubmitting(false);
+      const loginError = await credentialsLogin(email, password);
+      if (!loginError) {
         toast.success("Login Successful", { id: toastId });
-        // router.refresh();
-        router.push(`/home`);
+        router.replace("/home");
       } else {
-        setIsSubmitting(false);
-        toast.error(String(error), { id: toastId });
+        toast.error(loginError, { id: toastId });
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An error occurred. Please try again.";
-      setError(errorMessage);
-      toast.error(String(error), { id: toastId });
+      console.error("Unexpected login error:", error);
+      toast.error("An error occurred. Please try again.", { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    googleSignin();
+  /**
+   * Initiates Google Sign-In.
+   */
+  const handleGoogleSignIn = async () => {
+    try {
+      await googleSignin();
+    } catch (error) {
+      toast.error("Google Sign-In failed. Please try again.");
+    }
   };
+
+  // Prevent rendering if session status is loading
+  if (status === "loading") return null;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -66,12 +83,16 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold mb-6 text-center">
           Login to CodeNest
         </h1>
+
+        {/* Error Alert */}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
@@ -80,7 +101,8 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              //   required
+              required
+              autoComplete="email"
             />
           </div>
           <div className="relative">
@@ -90,7 +112,8 @@ export default function LoginPage() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              //   required
+              required
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -105,10 +128,14 @@ export default function LoginPage() {
               )}
             </button>
           </div>
+
+          {/* Login Button */}
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Logging in..." : "Login"}
           </Button>
         </form>
+
+        {/* Forgot Password Link */}
         <div className="mt-4 text-center">
           <Link
             href="/forgot-password"
@@ -117,6 +144,8 @@ export default function LoginPage() {
             Forgot password?
           </Link>
         </div>
+
+        {/* Social Login */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -137,6 +166,8 @@ export default function LoginPage() {
             Sign in with Google
           </Button>
         </div>
+
+        {/* Sign-up Link */}
         <p className="mt-6 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-primary hover:underline">

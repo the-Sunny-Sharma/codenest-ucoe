@@ -218,7 +218,9 @@ export default function CoursesList() {
             <CardFooter>
               <Button
                 className="w-full"
-                onClick={() => router.push(`/courses/${course.slug}`)}
+                onClick={() =>
+                  router.push(`/courses/${course._id}/${course.slug}`)
+                }
               >
                 View Course
               </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,9 +13,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { GripVertical, Plus, Trash, Upload, X } from "lucide-react";
+import { GripVertical, Plus, Trash, X } from "lucide-react";
 import ChapterList from "./ChapterList";
-import type { ISection } from "@/app/types";
+
+import type { ISection, IChapter } from "@/app/types";
+
 import { FileUpload } from "@/components/client/FileUpload";
 
 interface SectionListProps {
@@ -33,7 +35,7 @@ export default function SectionList({
 }: SectionListProps) {
   const [sections, setSections] = useState<ISection[]>(initialSections);
 
-  const handleAddSection = () => {
+  const handleAddSection = useCallback(() => {
     const newSection: ISection = {
       _id: Date.now().toString(),
       title: "New Section",
@@ -49,46 +51,77 @@ export default function SectionList({
     const updatedSections = [...sections, newSection];
     setSections(updatedSections);
     onUpdate(updatedSections);
-  };
+  }, [sections, onUpdate]);
 
-  const handleUpdateSection = (
-    index: number,
-    field: keyof ISection,
-    value: any
-  ) => {
-    const updatedSections = [...sections];
-    updatedSections[index] = { ...updatedSections[index], [field]: value };
-    setSections(updatedSections);
-    onUpdate(updatedSections);
-  };
+  const handleUpdateSection = useCallback(
+    (index: number, field: keyof ISection, value: any) => {
+      const updatedSections = sections.map((section, i) =>
+        i === index ? { ...section, [field]: value } : section
+      );
+      setSections(updatedSections);
+      onUpdate(updatedSections);
+      console.log("Updated sections:", updatedSections); // Debug log
+    },
+    [sections, onUpdate]
+  );
 
-  const handleDeleteSection = (index: number) => {
-    const updatedSections = sections.filter((_, i) => i !== index);
-    setSections(updatedSections);
-    onUpdate(updatedSections);
-  };
+  const handleDeleteSection = useCallback(
+    (index: number) => {
+      const updatedSections = sections.filter((_, i) => i !== index);
+      setSections(updatedSections);
+      onUpdate(updatedSections);
+    },
+    [sections, onUpdate]
+  );
 
-  const handleChapterReorder = (sectionIndex: number) => (result: any) => {
-    if (!result.destination) return;
+  const handleChapterReorder = useCallback(
+    (sectionIndex: number) => (result: any) => {
+      if (!result.destination) return;
 
-    const updatedSections = [...sections];
-    const section = { ...updatedSections[sectionIndex] };
-    const chapters = Array.from(section.chapters);
-    const [reorderedChapter] = chapters.splice(result.source.index, 1);
-    chapters.splice(result.destination.index, 0, reorderedChapter);
+      const updatedSections = [...sections];
+      const section = { ...updatedSections[sectionIndex] };
+      const chapters = Array.from(section.chapters);
+      const [reorderedChapter] = chapters.splice(result.source.index, 1);
+      chapters.splice(result.destination.index, 0, reorderedChapter);
 
-    // Update order numbers
-    const updatedChapters = chapters.map((chapter, index) => ({
-      ...chapter,
-      order: index + 1,
-    }));
+      // Update order numbers
+      const updatedChapters = chapters.map((chapter, index) => ({
+        ...chapter,
+        order: index + 1,
+      }));
 
-    section.chapters = updatedChapters;
-    updatedSections[sectionIndex] = section;
-    setSections(updatedSections);
-    onUpdate(updatedSections);
-  };
+      section.chapters = updatedChapters;
+      updatedSections[sectionIndex] = section;
+      setSections(updatedSections);
+      onUpdate(updatedSections);
+    },
+    [sections, onUpdate]
+  );
 
+  const handleUpdateChapters = useCallback(
+    (sectionIndex: number, updatedChapters: IChapter[]) => {
+      const updatedSections = sections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              chapters: updatedChapters,
+              totalChapters: updatedChapters.length,
+              totalDuration: updatedChapters.reduce(
+                (total, chapter) => total + chapter.duration,
+                0
+              ),
+            }
+          : section
+      );
+      setSections(updatedSections);
+      onUpdate(updatedSections);
+      console.log("Updated sections after chapter update:", updatedSections); // Debug log
+    },
+    [sections, onUpdate]
+  );
+
+  console.log("Course ID", courseId);
+  console.log("sections", sections);
   return (
     <div className="space-y-4">
       <Droppable droppableId="sections">
@@ -97,14 +130,26 @@ export default function SectionList({
             <Accordion type="single" collapsible className="w-full">
               {sections.map((section, index) => (
                 <Draggable
-                  key={section._id}
-                  draggableId={section._id}
+                  key={
+                    typeof section._id === "string"
+                      ? section._id
+                      : section._id.toString()
+                  }
+                  draggableId={
+                    typeof section._id === "string"
+                      ? section._id
+                      : section._id.toString()
+                  }
                   index={index}
                 >
                   {(provided) => (
                     <div ref={provided.innerRef} {...provided.draggableProps}>
                       <AccordionItem
-                        value={section._id}
+                        value={
+                          typeof section._id === "string"
+                            ? section._id
+                            : section._id.toString()
+                        }
                         className="border rounded-lg mb-4"
                       >
                         <div className="flex items-center">
@@ -263,8 +308,13 @@ export default function SectionList({
                               <DragDropContext
                                 onDragEnd={handleChapterReorder(index)}
                               >
-                                <ChapterList
-                                  sectionId={section._id}
+                                {/* <ChapterList
+                                  sectionId={
+                                    typeof section._id === "string"
+                                      ? section._id
+                                      : section._id.toString()
+                                  }
+                                  // sectionId={section._id}
                                   chapters={section.chapters}
                                   isEditing={isEditing}
                                   onUpdate={(updatedChapters) => {
@@ -273,6 +323,11 @@ export default function SectionList({
                                       "chapters",
                                       updatedChapters
                                     );
+                                    console.log(
+                                      "Updated chapters for section:",
+                                      section.title,
+                                      updatedChapters
+                                    ); // Debug log
                                     handleUpdateSection(
                                       index,
                                       "totalChapters",
@@ -288,6 +343,18 @@ export default function SectionList({
                                       )
                                     );
                                   }}
+                                /> */}
+                                <ChapterList
+                                  sectionId={
+                                    typeof section._id === "string"
+                                      ? section._id
+                                      : section._id.toString()
+                                  }
+                                  chapters={section.chapters}
+                                  isEditing={isEditing}
+                                  onUpdate={(updatedChapters) =>
+                                    handleUpdateChapters(index, updatedChapters)
+                                  }
                                 />
                               </DragDropContext>
                             </CardContent>
