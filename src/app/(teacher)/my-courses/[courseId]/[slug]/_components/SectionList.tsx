@@ -60,7 +60,7 @@ export default function SectionList({
       );
       setSections(updatedSections);
       onUpdate(updatedSections);
-      console.log("Updated sections:", updatedSections); // Debug log
+      // console.log("Updated sections:", updatedSections); // Debug log
     },
     [sections, onUpdate]
   );
@@ -115,13 +115,13 @@ export default function SectionList({
       );
       setSections(updatedSections);
       onUpdate(updatedSections);
-      console.log("Updated sections after chapter update:", updatedSections); // Debug log
+      // console.log("Updated sections after chapter update:", updatedSections); // Debug log
     },
     [sections, onUpdate]
   );
 
-  console.log("Course ID", courseId);
-  console.log("sections", sections);
+  // console.log("Course ID", courseId);
+  // console.log("sections", sections);
   return (
     <div className="space-y-4">
       <Droppable droppableId="sections">
@@ -355,6 +355,7 @@ export default function SectionList({
                                   onUpdate={(updatedChapters) =>
                                     handleUpdateChapters(index, updatedChapters)
                                   }
+                                  courseId={courseId}
                                 />
                               </DragDropContext>
                             </CardContent>

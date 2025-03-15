@@ -100,7 +100,7 @@ export default function CourseManagement({
         })),
       };
 
-      console.log("Saving course:", formattedCourse); // Debug log
+      // console.log("Saving course:", formattedCourse); // Debug log
 
       const response = await fetch(`/api/courses/${course._id}`, {
         method: "PUT",

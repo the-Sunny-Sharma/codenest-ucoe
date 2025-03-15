@@ -13,13 +13,19 @@
 //   AccordionTrigger,
 // } from "@/components/ui/accordion";
 // import { Switch } from "@/components/ui/switch";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 // import { Droppable, Draggable } from "@hello-pangea/dnd";
-// import { GripVertical, Plus, Trash } from "lucide-react";
-// import type { IChapter, IResource } from "@/app/types";
-// // import { FileUpload } from "@/components/client/FileUpload";
-// // import { VideoUpload } from "@/components/client/VideoUploadBtn";
+// import { GripVertical, Plus, Trash, Video, Radio } from "lucide-react";
+// import type { IChapter, IResource } from "@/types";
 // import { VideoUpload } from "./_cloudinary/UploadBtn";
 // import Hls from "hls.js"; // Import HLS.js
+// import { Badge } from "@/components/ui/badge";
 
 // interface ChapterListProps {
 //   sectionId: string;
@@ -36,27 +42,8 @@
 // }: ChapterListProps) {
 //   const [chapters, setChapters] = useState<IChapter[]>(initialChapters);
 
-//   // useEffect(() => {
-//   //   console.log("Chapters updated:", chapters); // Debugging
-
-//   //   chapters.forEach((chapter, index) => {
-//   //     if (chapter.videoUrl && Hls.isSupported()) {
-//   //       const videoElement = document.getElementById(
-//   //         `video-${index}`
-//   //       ) as HTMLVideoElement;
-
-//   //       if (videoElement) {
-//   //         const hls = new Hls();
-
-//   //         hls.loadSource(chapter.videoUrl);
-
-//   //         hls.attachMedia(videoElement);
-//   //       }
-//   //     }
-//   //   });
-//   // }, [chapters]);
 //   useEffect(() => {
-//     console.log("Chapters updated:", chapters); // Debugging
+//     // console.log("Chapters updated:", chapters); // Debugging
 
 //     chapters.forEach((chapter, index) => {
 //       if (chapter.videoUrl) {
@@ -104,6 +91,7 @@
 //       title: "New Chapter",
 //       description: "",
 //       resources: [],
+//       lectureType: "prerecordedVideo", // Default to prerecorded
 //       isLive: false,
 //       duration: 0,
 //       order: chapters.length + 1,
@@ -125,23 +113,23 @@
 //         i === index ? { ...chapter, [field]: value } : chapter
 //       );
 
-//       setChapters(updatedChapters);
+//       // Special handling for lectureType changes
+//       if (field === "lectureType") {
+//         // If changing to prerecordedVideo, ensure isLive is false
+//         if (value === "prerecordedVideo") {
+//           updatedChapters[index].isLive = false;
+//         }
+//         // If changing to liveLecture, ensure isLive is set (default to true)
+//         else if (value === "liveLecture") {
+//           updatedChapters[index].isLive = true;
+//         }
+//       }
+
 //       onUpdate(updatedChapters);
-//       console.log("Updated chapters:", updatedChapters); // Debug log
+//       // console.log("Updated chapters:", updatedChapters); // Debug log
 //       return updatedChapters;
 //     });
 //   };
-
-//   // const handleUpdateChapter = (
-//   //   index: number,
-//   //   field: keyof IChapter,
-//   //   value: any
-//   // ) => {
-//   //   const updatedChapters = [...chapters];
-//   //   updatedChapters[index] = { ...updatedChapters[index], [field]: value };
-//   //   setChapters(updatedChapters);
-//   //   onUpdate(updatedChapters);
-//   // };
 
 //   const handleDeleteChapter = (index: number) => {
 //     const updatedChapters = chapters.filter((_, i) => i !== index);
@@ -185,45 +173,13 @@
 //     onUpdate(updatedChapters);
 //   };
 
-//   // const handleVideoUpload = (index: number, url: string, duration: number) => {
-//   //   console.log("Uploaded Video URL:", url);
-
-//   //   setChapters((prevChapters) => {
-//   //     const updatedChapters = [...prevChapters];
-//   //     updatedChapters[index] = {
-//   //       ...updatedChapters[index],
-//   //       videoUrl: url,
-//   //       duration,
-//   //     };
-//   //     return updatedChapters;
-//   //   });
-
-//   //   onUpdate([...chapters]); // Ensure the parent component gets the update
-//   // };
-//   // const handleVideoUpload = (index: number, url: string, duration: number) => {
-//   //   console.log("Uploaded Video URL:", url);
-
-//   //   setChapters((prevChapters) => {
-//   //     const updatedChapters = [...prevChapters];
-//   //     updatedChapters[index] = {
-//   //       ...updatedChapters[index],
-//   //       videoUrl: url,
-//   //       duration,
-//   //     };
-
-//   //     // Ensure the parent gets the latest chapters
-//   //     onUpdate(updatedChapters);
-//   //     console.log("Updated chapters after video upload:", updatedChapters) // Debug log
-//   //     return updatedChapters;
-//   //   });
-//   // };
 //   const handleVideoUpload = (index: number, url: string, duration: number) => {
 //     const updatedChapters = chapters.map((chapter, i) =>
 //       i === index ? { ...chapter, videoUrl: url, duration } : chapter
 //     );
 //     setChapters(updatedChapters);
 //     onUpdate(updatedChapters);
-//     console.log("Updated chapters after video upload:", updatedChapters); // Debug log
+//     // console.log("Updated chapters after video upload:", updatedChapters); // Debug log
 //   };
 
 //   return (
@@ -265,9 +221,29 @@
 //                           </div>
 //                           <AccordionTrigger className="flex-1 hover:no-underline">
 //                             <div className="flex items-center justify-between w-full">
-//                               <span className="text-left font-medium">
-//                                 {chapter.order}. {chapter.title}
-//                               </span>
+//                               <div className="flex items-center gap-2">
+//                                 <span className="text-left font-medium">
+//                                   {chapter.order}. {chapter.title}
+//                                 </span>
+//                                 {chapter.lectureType === "liveLecture" && (
+//                                   <Badge
+//                                     variant="outline"
+//                                     className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+//                                   >
+//                                     <Radio className="h-3 w-3 mr-1" />
+//                                     Live
+//                                   </Badge>
+//                                 )}
+//                                 {chapter.lectureType === "prerecordedVideo" && (
+//                                   <Badge
+//                                     variant="outline"
+//                                     className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+//                                   >
+//                                     <Video className="h-3 w-3 mr-1" />
+//                                     Video
+//                                   </Badge>
+//                                 )}
+//                               </div>
 //                               {isEditing && (
 //                                 <Button
 //                                   variant="ghost"
@@ -320,6 +296,45 @@
 //                                   disabled={!isEditing}
 //                                 />
 //                               </div>
+
+//                               {/* Lecture Type Selection */}
+//                               <div>
+//                                 <Label htmlFor={`chapter-lectureType-${index}`}>
+//                                   Lecture Type
+//                                 </Label>
+//                                 <Select
+//                                   value={chapter.lectureType}
+//                                   onValueChange={(value) =>
+//                                     handleUpdateChapter(
+//                                       index,
+//                                       "lectureType",
+//                                       value
+//                                     )
+//                                   }
+//                                   disabled={!isEditing}
+//                                 >
+//                                   <SelectTrigger
+//                                     id={`chapter-lectureType-${index}`}
+//                                   >
+//                                     <SelectValue placeholder="Select lecture type" />
+//                                   </SelectTrigger>
+//                                   <SelectContent>
+//                                     <SelectItem value="prerecordedVideo">
+//                                       <div className="flex items-center">
+//                                         <Video className="h-4 w-4 mr-2" />
+//                                         Pre-recorded Video
+//                                       </div>
+//                                     </SelectItem>
+//                                     <SelectItem value="liveLecture">
+//                                       <div className="flex items-center">
+//                                         <Radio className="h-4 w-4 mr-2" />
+//                                         Live Lecture
+//                                       </div>
+//                                     </SelectItem>
+//                                   </SelectContent>
+//                                 </Select>
+//                               </div>
+
 //                               <div>
 //                                 <Label htmlFor={`chapter-duration-${index}`}>
 //                                   Duration (minutes)
@@ -338,175 +353,28 @@
 //                                   disabled={!isEditing}
 //                                 />
 //                               </div>
-//                               <div className="flex items-center space-x-2">
-//                                 <Switch
-//                                   id={`chapter-isLive-${index}`}
-//                                   checked={chapter.isLive}
-//                                   onCheckedChange={(checked) =>
-//                                     handleUpdateChapter(
-//                                       index,
-//                                       "isLive",
-//                                       checked
-//                                     )
-//                                   }
-//                                   disabled={!isEditing}
-//                                 />
-//                                 <Label htmlFor={`chapter-isLive-${index}`}>
-//                                   Live Session
-//                                 </Label>
-//                               </div>
-//                               {chapter.isLive && (
-//                                 <div>
-//                                   <Label
-//                                     htmlFor={`chapter-liveSessionDate-${index}`}
-//                                   >
-//                                     Live Session Date
-//                                   </Label>
-//                                   <Input
-//                                     id={`chapter-liveSessionDate-${index}`}
-//                                     type="datetime-local"
-//                                     value={chapter.liveSessionDate
-//                                       ?.toISOString()
-//                                       .slice(0, 16)}
-//                                     onChange={(e) =>
-//                                       handleUpdateChapter(
-//                                         index,
-//                                         "liveSessionDate",
-//                                         new Date(e.target.value)
-//                                       )
-//                                     }
-//                                     disabled={!isEditing}
-//                                   />
-//                                 </div>
-//                               )}
 
-//                               {/* {!chapter.isLive && (
-//                                 <div>
-//                                   <Label htmlFor={`chapter-video-${index}`}>
-//                                     Video
-//                                   </Label>
-
-//                                   <VideoUpload
-//                                     onUploadComplete={(playbackId) => {
-//                                       handleUpdateChapter(
-//                                         index,
-//                                         "muxPlaybackId",
-//                                         playbackId
-//                                       );
-
-//                                       handleUpdateChapter(
-//                                         index,
-//                                         "videoUrl",
-//                                         `https://stream.mux.com/${playbackId}.m3u8`
-//                                       );
-//                                     }}
-//                                   />
-//                                   {chapter.videoUrl && (
-//                                     <div className="mt-2 aspect-video">
-
-//                                       <video
-//                                         id={`video-${index}`}
-//                                         controls
-//                                         className="w-full h-full rounded-lg"
-//                                       />
-//                                     </div>
-//                                   )}
-//                                 </div>
-//                               )} */}
-
-//                               {!chapter.isLive && (
-//                                 <div>
-//                                   <Label htmlFor={`chapter-video-${index}`}>
-//                                     Video
-//                                   </Label>
-//                                   <VideoUpload
-//                                     // onUploadComplete={(url, duration) => {
-//                                     //   handleUpdateChapter(
-//                                     //     index,
-//                                     //     "videoUrl",
-//                                     //     url
-//                                     //   );
-//                                     //   handleUpdateChapter(
-//                                     //     index,
-//                                     //     "duration",
-//                                     //     duration
-//                                     //   );
-//                                     // }}
-//                                     onUploadComplete={(url, duration) => {
-//                                       console.log("Uploaded Video URL:", url);
-
-//                                       handleVideoUpload(index, url, duration);
-
-//                                       // Debugging: Log existing chapter URLs before updating
-//                                       chapters.forEach((chapter) => {
-//                                         console.log(
-//                                           `Before Update - Chapter: ${chapter.title}, Video URL: ${chapter.videoUrl}`
-//                                         );
-//                                       });
-
-//                                       // Updating the videoUrl field
-//                                       handleUpdateChapter(
-//                                         index,
-//                                         "videoUrl",
-//                                         url
-//                                       );
-//                                       handleUpdateChapter(
-//                                         index,
-//                                         "duration",
-//                                         duration
-//                                       );
-
-//                                       setTimeout(() => {
-//                                         const videoElement =
-//                                           document.getElementById(
-//                                             `video-${index}`
-//                                           ) as HTMLVideoElement | null;
-//                                         videoElement?.load();
-//                                       }, 100);
-
-//                                       // Debugging: Log updated chapters
-//                                       setTimeout(() => {
-//                                         chapters.forEach((chapter) => {
-//                                           console.log(
-//                                             `After Update - Chapter: ${chapter.title}, Video URL: ${chapter.videoUrl}`
-//                                           );
-//                                         });
-//                                       }, 500);
-//                                     }}
-//                                   />
-//                                   {/* {chapter.videoUrl && (
-//                                     <div className="mt-2 aspect-video">
-//                                       <video
-//                                         src={chapter.videoUrl}
-//                                         controls
-//                                         className="w-full h-full rounded-lg"
-//                                       />
-//                                     </div>
-//                                   )} */}
-//                                   {chapter.videoUrl && (
-//                                     <div className="mt-2 aspect-video">
-//                                       {chapter.videoUrl && (
-//                                         <div className="mt-2 aspect-video">
-//                                           <video
-//                                             id={`video-${index}`}
-//                                             key={chapter.videoUrl} // Forces re-render
-//                                             controls
-//                                             className="w-full h-full rounded-lg"
-//                                           >
-//                                             <source
-//                                               src={chapter.videoUrl}
-//                                               type="video/mp4"
-//                                             />
-//                                           </video>
-//                                         </div>
-//                                       )}
-//                                     </div>
-//                                   )}
-//                                 </div>
-//                               )}
-
-//                               {!chapter.isLive && (
+//                               {/* Live Lecture Settings */}
+//                               {chapter.lectureType === "liveLecture" && (
 //                                 <>
+//                                   <div className="flex items-center space-x-2">
+//                                     <Switch
+//                                       id={`chapter-isLive-${index}`}
+//                                       checked={chapter.isLive}
+//                                       onCheckedChange={(checked) =>
+//                                         handleUpdateChapter(
+//                                           index,
+//                                           "isLive",
+//                                           checked
+//                                         )
+//                                       }
+//                                       disabled={!isEditing}
+//                                     />
+//                                     <Label htmlFor={`chapter-isLive-${index}`}>
+//                                       Is Currently Live
+//                                     </Label>
+//                                   </div>
+
 //                                   <div>
 //                                     <Label
 //                                       htmlFor={`chapter-scheduledTime-${index}`}
@@ -516,9 +384,13 @@
 //                                     <Input
 //                                       id={`chapter-scheduledTime-${index}`}
 //                                       type="datetime-local"
-//                                       value={chapter.scheduledTime
-//                                         ?.toISOString()
-//                                         .slice(0, 16)}
+//                                       value={
+//                                         chapter.scheduledTime
+//                                           ? new Date(chapter.scheduledTime)
+//                                               .toISOString()
+//                                               .slice(0, 16)
+//                                           : ""
+//                                       }
 //                                       onChange={(e) =>
 //                                         handleUpdateChapter(
 //                                           index,
@@ -529,15 +401,109 @@
 //                                       disabled={!isEditing}
 //                                     />
 //                                   </div>
+//                                 </>
+//                               )}
+
+//                               {/* Pre-recorded Video Settings */}
+//                               {chapter.lectureType === "prerecordedVideo" && (
+//                                 <>
+//                                   <div>
+//                                     <Label htmlFor={`chapter-video-${index}`}>
+//                                       Video
+//                                     </Label>
+//                                     <VideoUpload
+//                                       onUploadComplete={(url, duration) => {
+//                                         // console.log("Uploaded Video URL:", url);
+//                                         handleVideoUpload(index, url, duration);
+
+//                                         // Debugging: Log existing chapter URLs before updating
+//                                         chapters.forEach((chapter) => {
+//                                           // console.log(
+//                                           //   `Before Update - Chapter: ${chapter.title}, Video URL: ${chapter.videoUrl}`
+//                                           // );
+//                                         });
+
+//                                         // Updating the videoUrl field
+//                                         handleUpdateChapter(
+//                                           index,
+//                                           "videoUrl",
+//                                           url
+//                                         );
+//                                         handleUpdateChapter(
+//                                           index,
+//                                           "duration",
+//                                           duration
+//                                         );
+
+//                                         setTimeout(() => {
+//                                           const videoElement =
+//                                             document.getElementById(
+//                                               `video-${index}`
+//                                             ) as HTMLVideoElement | null;
+//                                           videoElement?.load();
+//                                         }, 100);
+//                                       }}
+//                                     />
+
+//                                     {chapter.videoUrl && (
+//                                       <div className="mt-2 aspect-video">
+//                                         <video
+//                                           id={`video-${index}`}
+//                                           key={chapter.videoUrl} // Forces re-render
+//                                           controls
+//                                           className="w-full h-full rounded-lg"
+//                                         >
+//                                           <source
+//                                             src={chapter.videoUrl}
+//                                             type="video/mp4"
+//                                           />
+//                                         </video>
+//                                       </div>
+//                                     )}
+//                                   </div>
+
+//                                   <div>
+//                                     <Label
+//                                       htmlFor={`chapter-scheduledTime-${index}`}
+//                                     >
+//                                       Available From (Optional)
+//                                     </Label>
+//                                     <Input
+//                                       id={`chapter-scheduledTime-${index}`}
+//                                       type="datetime-local"
+//                                       value={
+//                                         chapter.scheduledTime
+//                                           ? new Date(chapter.scheduledTime)
+//                                               .toISOString()
+//                                               .slice(0, 16)
+//                                           : ""
+//                                       }
+//                                       onChange={(e) =>
+//                                         handleUpdateChapter(
+//                                           index,
+//                                           "scheduledTime",
+//                                           e.target.value
+//                                             ? new Date(e.target.value)
+//                                             : null
+//                                         )
+//                                       }
+//                                       disabled={!isEditing}
+//                                     />
+//                                     <p className="text-xs text-muted-foreground mt-1">
+//                                       If set, the video will only be available
+//                                       after this date
+//                                     </p>
+//                                   </div>
+
 //                                   <div>
 //                                     <Label
 //                                       htmlFor={`chapter-videoUrl-${index}`}
 //                                     >
-//                                       Video URL
+//                                       Video URL (Manual Entry)
 //                                     </Label>
 //                                     <Input
 //                                       id={`chapter-videoUrl-${index}`}
-//                                       value={chapter.videoUrl}
+//                                       value={chapter.videoUrl || ""}
 //                                       onChange={(e) =>
 //                                         handleUpdateChapter(
 //                                           index,
@@ -550,6 +516,8 @@
 //                                   </div>
 //                                 </>
 //                               )}
+
+//                               {/* Resources Section */}
 //                               <div>
 //                                 <Label>Resources</Label>
 //                                 {chapter.resources.map(
@@ -651,7 +619,6 @@
 //     </div>
 //   );
 // }
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -680,12 +647,14 @@ import type { IChapter, IResource } from "@/types";
 import { VideoUpload } from "./_cloudinary/UploadBtn";
 import Hls from "hls.js"; // Import HLS.js
 import { Badge } from "@/components/ui/badge";
+import { LiveStreamPlayer } from "./LiveStreamPlayer";
 
 interface ChapterListProps {
   sectionId: string;
   chapters: IChapter[];
   isEditing: boolean;
   onUpdate: (updatedChapters: IChapter[]) => void;
+  courseId: string;
 }
 
 export default function ChapterList({
@@ -693,6 +662,7 @@ export default function ChapterList({
   chapters: initialChapters,
   isEditing,
   onUpdate,
+  courseId,
 }: ChapterListProps) {
   const [chapters, setChapters] = useState<IChapter[]>(initialChapters);
 
@@ -1055,6 +1025,13 @@ export default function ChapterList({
                                       disabled={!isEditing}
                                     />
                                   </div>
+
+                                  <LiveStreamPlayer
+                                    courseId={courseId}
+                                    chapterId={chapter._id.toString()}
+                                    title={chapter.title}
+                                    scheduledTime={chapter.scheduledTime}
+                                  />
                                 </>
                               )}
 

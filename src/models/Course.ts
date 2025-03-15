@@ -1,5 +1,5 @@
 import mongoose, { type Model, Schema, type Document } from "mongoose";
-import "@/models/Teacher"; // Ensure the model is registered
+import "@/models/Teacher";
 
 /** Resource Schema */
 export interface IResource extends Document {
@@ -25,8 +25,11 @@ export interface IChapter extends Document {
   videoUrl?: string;
   duration: number;
   order: number;
+  streamKey?: string;
+  playbackId?: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
+  muxStreamId?: string;
 }
 
 const ChapterSchema: Schema = new Schema({
@@ -54,8 +57,11 @@ const ChapterSchema: Schema = new Schema({
   duration: { type: Number, default: 0 }, // Default set to 0
 
   order: { type: Number, required: true },
+  streamKey: { type: String },
+  playbackId: { type: String },
   muxPlaybackId: { type: String },
   muxAssetId: { type: String },
+  muxStreamId: { type: String },
 });
 
 /** Section Schema */
@@ -109,7 +115,6 @@ export interface ICourse extends Document {
   status: "draft" | "published" | "archived"; //Defaulted to Draft //
   category: string; //
   liveStream?: {
-    //
     streamKey: string;
     playbackId: string;
   };
